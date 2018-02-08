@@ -24,6 +24,10 @@ public class Unit : NetworkBehaviour
     public float range = 2;
     public float rotateSpeedForAttack;
 
+
+    private MeshRenderer render;
+    private Material[] mats;
+
     public Material selectedMaterial;
     public Material normalMaterial;
 
@@ -34,16 +38,24 @@ public class Unit : NetworkBehaviour
     {
         nma = GetComponent<NavMeshAgent>();
 
+        render = GetComponent<MeshRenderer>();
+        mats = GetComponent<MeshRenderer>().materials;
+
+        mats[1] = normalMaterial;
+        render.materials = mats;
+
         StartCoroutine(slowUpdate());
     }
 
     public void onSelected()//ONLY VISUAL NO STATE CHANGE
     {
-        GetComponent<Renderer>().material = selectedMaterial;
+        mats[1] = selectedMaterial;
+        render.materials = mats;
     }
     public void onDeselected()//ONLY VISUAL NO STATE CHANGE
     {
-        GetComponent<Renderer>().material = normalMaterial;
+        mats[1] = normalMaterial;
+        render.materials = mats;
     }
 
     public IEnumerator slowUpdate()
@@ -56,10 +68,6 @@ public class Unit : NetworkBehaviour
 
             if (isClient)
             {
-                if (target != null && canShoot)
-                {
-                    //fireAt(target);
-                }
             }
             if (isServer)
             {
