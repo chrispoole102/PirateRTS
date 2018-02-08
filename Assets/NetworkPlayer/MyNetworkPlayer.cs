@@ -11,10 +11,16 @@ public class MyNetworkPlayer : NetworkBehaviour
 
     //public List<GameObject> myUnits;//I don't think I need to sync this list because the unit's sync their owners
 
-    public GameObject xMarkCanvas;
+    private GameObject xMarkCanvas;
+    private GameObject startUI;
+    private Dropdown startUIDropdown;
 
     [SyncVar]
     public GameObject selected;
+
+    public Color teamColor;
+    public int team;//only used for cleanup not used for controlling ships
+                    //also doesn't have to be sync var because its only used on the server.
 
     //[SyncVar]
     //public string myName;
@@ -29,16 +35,63 @@ public class MyNetworkPlayer : NetworkBehaviour
         {
             xMarkCanvas = GameObject.Find("xMarkerCanvas");
             xMarkCanvas.SetActive(false);
+
+            startUI = GameObject.Find("StartUICanvas");
+            startUI.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(() => onClickSetSail());
+            startUIDropdown = startUI.transform.GetChild(0).GetComponent<Dropdown>();
             //Cmd_SetName("Player " + (GameObject.FindGameObjectsWithTag("NetworkPlayer").Length));
         }
 
         if (isServer)
         {
-            StartCoroutine(spawnUnit(Vector2.zero, UnitType.BASIC));
-            StartCoroutine(spawnUnit(new Vector2(0,2), UnitType.BASIC));
+            //see Cmd_AttempJoinTeam
         }
         StartCoroutine(slowUpdate());
     }
+    //-----------------
+    //----START UI-----
+    //-----------------
+    public void onClickSetSail()
+    {
+        Cmd_AttemptJoinTeam(startUIDropdown.value);
+    }
+    [Command]
+    public void Cmd_AttemptJoinTeam(int team)
+    {
+        if (TeamManager.teamTaken[team])
+        {
+            //send message to client that sent command
+            Rpc_SendStartUIMessage("Team Already Taken!");
+        }
+        else
+        {
+            TeamManager.teamTaken[team] = true;
+            teamColor = TeamManager.teams[team];
+            this.team = team;
+
+            Rpc_JoinGame();
+
+            //--------------------
+            //SPAWN STARTING SHIPS
+            //--------------------
+
+            StartCoroutine(spawnUnit(Vector2.zero, UnitType.BASIC));
+            StartCoroutine(spawnUnit(new Vector2(0, 2), UnitType.BASIC));
+        }
+    }
+    [ClientRpc]
+    public void Rpc_SendStartUIMessage(string message)
+    {
+        if (isLocalPlayer)
+            startUI.transform.GetChild(2).GetComponent<Text>().text = message;
+    }
+    [ClientRpc]
+    public void Rpc_JoinGame()
+    {
+        if (isLocalPlayer)
+            Destroy(startUI);
+    }
+    //ONLY CALL THIS ON SERVER
     public IEnumerator spawnUnit(Vector2 pos, UnitType type, float spawnDelay = 0.0f)
     {
         //while (myName == "")//wait for us to get a name
@@ -54,9 +107,14 @@ public class MyNetworkPlayer : NetworkBehaviour
         Temp.GetComponent<NavMeshAgent>().Warp(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));//needs to do this instead of transform.postion
         Temp.GetComponent<NavMeshAgent>().SetDestination(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));
 
+        Temp.GetComponent<Unit>().color = teamColor;
+
         NetworkServer.Spawn(Temp);
         //myUnits.Add(Temp);
     }
+    //---------------
+    //----UPDATE-----
+    //---------------
     public IEnumerator slowUpdate()
     {
         while (true)
@@ -126,6 +184,9 @@ public class MyNetworkPlayer : NetworkBehaviour
             yield return new WaitForSeconds(.05f);
         }
     }
+    //------------------------------
+    //----SHIP CONTROL COMMANDS-----
+    //------------------------------
     [Command]
     public void Cmd_Select(GameObject s)
     {
@@ -143,12 +204,6 @@ public class MyNetworkPlayer : NetworkBehaviour
         Debug.Log("targeting");
         a.GetComponent<Unit>().target = b;
     }
-    /*
-    [Command]
-    public void Cmd_SetName(string n)
-    {
-        myName = n;
-    }*/
 
     void OnPlayerDisconnected(UnityEngine.NetworkPlayer player)
     {
@@ -166,5 +221,6 @@ public class MyNetworkPlayer : NetworkBehaviour
                 Destroy(go);
             }
         }
+        TeamManager.teamTaken[team] = false;
     }
 }

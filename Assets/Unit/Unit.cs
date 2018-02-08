@@ -8,6 +8,9 @@ public class Unit : NetworkBehaviour
 {
     [SyncVar]
     public GameObject owner;
+    
+    [SyncVar]
+    public Color color;
 
     public UnitType type;//doesn't need to sync because only set once at spawn and always the same
 
@@ -40,6 +43,8 @@ public class Unit : NetworkBehaviour
 
         render = GetComponent<MeshRenderer>();
         mats = GetComponent<MeshRenderer>().materials;
+
+        mats[0].color = color;
 
         mats[1] = normalMaterial;
         render.materials = mats;
