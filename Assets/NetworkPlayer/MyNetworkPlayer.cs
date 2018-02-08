@@ -134,7 +134,8 @@ public class MyNetworkPlayer : NetworkBehaviour
     [Command]//Commands are only run on the server
     public void Cmd_Move(float x, float z)
     {
-        selected.GetComponent<NavMeshAgent>().destination = new Vector3(x, Sea.SEA_HEIGHT, z);//move the piece
+        if (selected!=null)
+            selected.GetComponent<NavMeshAgent>().destination = new Vector3(x, Sea.SEA_HEIGHT, z);//move the piece
     }
     [Command]
     public void Cmd_Target(GameObject a, GameObject b)

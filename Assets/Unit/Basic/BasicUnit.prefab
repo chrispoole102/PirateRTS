@@ -143,6 +143,7 @@ MonoBehaviour:
   canShoot: 1
   shootTimer: 1
   range: 10
+  rotateSpeedForAttack: 10
   selectedMaterial: {fileID: 2100000, guid: a889dd534e10361489a584ae9772a00a, type: 2}
   normalMaterial: {fileID: 2100000, guid: 8147a234d7a95b14dab878e3ac7e4613, type: 2}
   nma: {fileID: 0}

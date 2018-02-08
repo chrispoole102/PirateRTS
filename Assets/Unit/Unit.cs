@@ -22,6 +22,7 @@ public class Unit : NetworkBehaviour
     public bool canShoot = true;
     public float shootTimer = 1;
     public float range = 2;
+    public float rotateSpeedForAttack;
 
     public Material selectedMaterial;
     public Material normalMaterial;
@@ -74,11 +75,16 @@ public class Unit : NetworkBehaviour
                             {
                                 if (hit.collider.gameObject == target)
                                 {
-                                    transform.LookAt(target.transform.position);//use rigidbody not transform
-                                    canShoot = false;
-                                    StartCoroutine(DamageDelay(target.GetComponent<Unit>()));
-                                    StartCoroutine(Timer());
-                                    Rpc_fireAtTarget();
+                                    if (isFacing(target))
+                                    {
+                                        //transform.LookAt(target.transform.position);//use rigidbody not transform
+                                        canShoot = false;
+                                        StartCoroutine(DamageDelay(target.GetComponent<Unit>()));
+                                        StartCoroutine(Timer());
+                                        Rpc_fireAtTarget();
+                                    }
+                                    else
+                                        rotateToFace(target);
                                 }
                             }
                         }
@@ -115,12 +121,16 @@ public class Unit : NetworkBehaviour
                         if (index != -1)
                         {
                             //this turned out being a bit awkward considering I can't just set the target because that overrides all movement
-
-                            transform.LookAt(units[index].transform.position);//use rigidbody not transform
-                            canShoot = false;
-                            StartCoroutine(DamageDelay(units[index].GetComponent<Unit>()));
-                            StartCoroutine(Timer());
-                            Rpc_fireAt(units[index]);
+                            if (isFacing(units[index]))
+                            {
+                                //transform.LookAt(units[index].transform.position);//use rigidbody not transform
+                                canShoot = false;
+                                StartCoroutine(DamageDelay(units[index].GetComponent<Unit>()));
+                                StartCoroutine(Timer());
+                                Rpc_fireAt(units[index]);
+                            }
+                            else
+                                rotateToFace(units[index]);
                         }
                     }
                 }
@@ -129,6 +139,20 @@ public class Unit : NetworkBehaviour
             yield return new WaitForSeconds(0.05f);
         }
     }
+    public bool isFacing(GameObject t)
+    {
+        Vector3 dirFromAtoB = (t.transform.position - transform.position).normalized;
+        float dotProd = Vector3.Dot(dirFromAtoB, transform.forward);
+        
+        return (dotProd > 0.9);
+    }
+    public void rotateToFace(GameObject t)
+    {
+        Vector3 targetDir = t.transform.position - transform.position;
+        Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, rotateSpeedForAttack * Time.deltaTime, 0.0F);
+        transform.rotation = Quaternion.LookRotation(newDir);
+    }
+
     IEnumerator DamageDelay(Unit unitToDamage, int damage = 1)
     {
         yield return new WaitForSeconds(0.5f);
