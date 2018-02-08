@@ -26,9 +26,13 @@ public class Unit : NetworkBehaviour
     public Material selectedMaterial;
     public Material normalMaterial;
 
+    public NavMeshAgent nma;
+
     // Use this for initialization
     void Start ()
     {
+        nma = GetComponent<NavMeshAgent>();
+
         StartCoroutine(slowUpdate());
     }
 
@@ -49,35 +53,74 @@ public class Unit : NetworkBehaviour
             if (hp <= 0)
                 Destroy(gameObject);
 
-            Debug.Log("me");
             if (isClient)
             {
-                /*if (target != null && canShoot)
+                if (target != null && canShoot)
                 {
-                    GameObject temp = GameObject.Instantiate(bulletPrefab, transform.position, transform.rotation);
-                    //move towards target
-                }*/
-                Debug.Log("hi2");
-                if (Input.GetAxisRaw("Jump")>0)
-                {
-                    Debug.Log("hi");
-                    fireAt(GameObject.FindGameObjectWithTag("Finish"));
+                    //fireAt(target);
                 }
             }
             if (isServer)
             {
-                Debug.Log("hi3");
-                if (target != null && canShoot)
+                if (canShoot)
                 {
-                    RaycastHit hit;
-                    if (Physics.Raycast(transform.position, target.transform.position - transform.position, out hit))
+                    if (target != null)
                     {
-                        if (hit.collider.gameObject == target)
+                        if (Vector3.Distance(target.transform.position, transform.position) < range)
                         {
-                            target.GetComponent<Unit>().hp--;
-                            transform.LookAt(target.transform.position);//use rigidbody not transform
+                            nma.destination = transform.position;//stop
+                            RaycastHit hit;
+                            if (Physics.Raycast(transform.position, target.transform.position - transform.position, out hit))
+                            {
+                                if (hit.collider.gameObject == target)
+                                {
+                                    transform.LookAt(target.transform.position);//use rigidbody not transform
+                                    canShoot = false;
+                                    StartCoroutine(DamageDelay(target.GetComponent<Unit>()));
+                                    StartCoroutine(Timer());
+                                    Rpc_fireAtTarget();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            nma.destination = target.transform.position;//move towards target if not in range
+                        }
+                    }
+                    else
+                    {
+                        //find targets from nearby
+                        
+                        GameObject[] units = GameObject.FindGameObjectsWithTag("Unit");
+                        float dist = range;
+                        int index = -1;
+                        for (int i = 0; i<units.Length; i++)
+                        {
+                            if (units[i].GetComponent<Unit>().owner != owner)
+                            {
+                                if (Vector3.Distance(units[i].transform.position, transform.position) < dist)
+                                {
+                                    RaycastHit hit;
+                                    if (Physics.Raycast(transform.position, units[i].transform.position - transform.position, out hit))
+                                    {
+                                        if (hit.collider.gameObject == units[i])
+                                        {
+                                            index = i;
+                                            dist = Vector3.Distance(units[i].transform.position, transform.position);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (index != -1)
+                        {
+                            //this turned out being a bit awkward considering I can't just set the target because that overrides all movement
+
+                            transform.LookAt(units[index].transform.position);//use rigidbody not transform
                             canShoot = false;
+                            StartCoroutine(DamageDelay(units[index].GetComponent<Unit>()));
                             StartCoroutine(Timer());
+                            Rpc_fireAt(units[index]);
                         }
                     }
                 }
@@ -86,12 +129,26 @@ public class Unit : NetworkBehaviour
             yield return new WaitForSeconds(0.05f);
         }
     }
+    IEnumerator DamageDelay(Unit unitToDamage, int damage = 1)
+    {
+        yield return new WaitForSeconds(0.5f);
+        unitToDamage.hp -= damage;
+    }
     IEnumerator Timer()
     {
         yield return new WaitForSeconds(shootTimer);
         canShoot = true;
     }
-    public void fireAt(GameObject t)
+    [ClientRpc]
+    public void Rpc_fireAtTarget()//I seperated these two so there wouldn't be unnecessary network traffic when fighting the target
+    {
+        GameObject t = target;
+        GameObject bullet = GameObject.Instantiate(bulletPrefab, transform.position, transform.rotation);
+        bullet.GetComponent<Projectile>().speed = bulletSpeed;
+        bullet.GetComponent<Projectile>().target = t;
+    }
+    [ClientRpc]
+    public void Rpc_fireAt(GameObject t)
     {
         GameObject bullet = GameObject.Instantiate(bulletPrefab, transform.position, transform.rotation);
         bullet.GetComponent<Projectile>().speed = bulletSpeed;

@@ -95,7 +95,9 @@ public class MyNetworkPlayer : NetworkBehaviour
                         if (hit.collider.gameObject.tag == "Unit")
                         {
                             if (hit.collider.gameObject.GetComponent<Unit>().owner != gameObject)
+                            {
                                 Cmd_Target(selected, hit.collider.gameObject);
+                            }
                         }
                         else
                         {
@@ -106,7 +108,20 @@ public class MyNetworkPlayer : NetworkBehaviour
                         }
                     }
                 }
-
+                if (selected == null)
+                {
+                    if (xMarkCanvas.activeSelf)
+                        xMarkCanvas.SetActive(false);
+                }
+                else
+                {
+                    if (selected.GetComponent<Unit>().target != null)
+                    {
+                        if (!xMarkCanvas.activeSelf)
+                            xMarkCanvas.SetActive(true);
+                        xMarkCanvas.transform.position = selected.GetComponent<Unit>().target.transform.position;
+                    }
+                }
             }
             yield return new WaitForSeconds(.05f);
         }
@@ -124,6 +139,7 @@ public class MyNetworkPlayer : NetworkBehaviour
     [Command]
     public void Cmd_Target(GameObject a, GameObject b)
     {
+        Debug.Log("targeting");
         a.GetComponent<Unit>().target = b;
     }
     /*

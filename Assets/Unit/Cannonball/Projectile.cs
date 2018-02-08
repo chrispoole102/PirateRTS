@@ -11,6 +11,8 @@ public class Projectile : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        if (target == null)
+            Destroy(gameObject);
         transform.position = Vector3.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
         dieTimer -= Time.deltaTime;
         if (dieTimer < 0)
