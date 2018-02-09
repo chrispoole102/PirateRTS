@@ -104,6 +104,11 @@ public class MyNetworkPlayer : NetworkBehaviour
             StartCoroutine(inGameUI.GetComponent<InGameUI>().waitForCommander());//wait for the server to spawn the commander ship
         }
     }
+    [Command]
+    public void Cmd_spawnCommand(Vector2 pos, UnitType type)
+    {
+        StartCoroutine(spawnUnit(pos, type));
+    }
     //ONLY CALL THIS ON SERVER
     public IEnumerator spawnUnit(Vector2 pos, UnitType type, float spawnDelay = 0.0f)
     {

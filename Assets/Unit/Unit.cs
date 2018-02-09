@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Unit : NetworkBehaviour
 {
@@ -15,7 +16,9 @@ public class Unit : NetworkBehaviour
     public UnitType type;//doesn't need to sync because only set once at spawn and always the same
 
     [SyncVar]
-    public int hp = 5;
+    public int hp = 100;
+    [SyncVar]
+    public int maxhp;
 
     public GameObject bulletPrefab;
     public float bulletSpeed;
@@ -38,18 +41,24 @@ public class Unit : NetworkBehaviour
 
     private NavMeshAgent nma;
 
+    private Image hpBar;
+
     // Use this for initialization
     void Start ()
     {
+        hp = maxhp;
+
         nma = GetComponent<NavMeshAgent>();
 
         render = GetComponent<MeshRenderer>();
         mats = GetComponent<MeshRenderer>().materials;
-
+        
         mats[0].color = color;
 
         mats[1] = normalMaterial;
         render.materials = mats;
+
+        hpBar = transform.GetChild(0).GetChild(1).GetComponent<Image>();
 
         StartCoroutine(slowUpdate());
     }
@@ -72,10 +81,12 @@ public class Unit : NetworkBehaviour
         {
             if (isClient)
             {
+                hpBar.fillAmount = (float)hp / (float)maxhp;
                 if (hp <= 0)
                 {
                     GameObject sinking = GameObject.Instantiate(sinkingShipPrefab, transform.position, transform.rotation);
                     sinking.GetComponent<MeshRenderer>().materials[0].color = color;
+                    sinking.GetComponent<MeshFilter>().mesh = GetComponent<MeshFilter>().mesh;
                     Destroy(gameObject);
                 }
             }
@@ -101,7 +112,7 @@ public class Unit : NetworkBehaviour
                                     {
                                         //transform.LookAt(target.transform.position);//use rigidbody not transform
                                         canShoot = false;
-                                        StartCoroutine(DamageDelay(target.GetComponent<Unit>()));
+                                        StartCoroutine(DamageDelay(target));
                                         StartCoroutine(Timer());
                                         Rpc_fireAtTarget();
                                     }
@@ -147,7 +158,7 @@ public class Unit : NetworkBehaviour
                             {
                                 //transform.LookAt(units[index].transform.position);//use rigidbody not transform
                                 canShoot = false;
-                                StartCoroutine(DamageDelay(units[index].GetComponent<Unit>()));
+                                StartCoroutine(DamageDelay(units[index]));
                                 StartCoroutine(Timer());
                                 Rpc_fireAt(units[index]);
                             }
@@ -175,10 +186,10 @@ public class Unit : NetworkBehaviour
         transform.rotation = Quaternion.LookRotation(newDir);
     }
 
-    IEnumerator DamageDelay(Unit unitToDamage, int damage = 1)
+    IEnumerator DamageDelay(GameObject goToDamage)
     {
-        yield return new WaitForSeconds(0.5f);
-        unitToDamage.hp -= damage;
+        yield return new WaitForSeconds(Vector3.Distance(goToDamage.transform.position, transform.position)/bulletSpeed);
+        goToDamage.GetComponent<Unit>().hp -= damage;
     }
     IEnumerator Timer()
     {

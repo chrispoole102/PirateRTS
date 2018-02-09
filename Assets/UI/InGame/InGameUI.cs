@@ -23,7 +23,7 @@ public class InGameUI : MonoBehaviour
         if (commander!=null)
         {
             if (np.isLocalPlayer)
-                StartCoroutine(np.spawnUnit(commander.position + Vector3.right * 2, UnitType.BASIC));
+                np.Cmd_spawnCommand(commander.position + Vector3.right * 2, UnitType.BASIC);
         }
     }
 }
