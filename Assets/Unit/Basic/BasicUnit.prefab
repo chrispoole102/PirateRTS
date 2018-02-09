@@ -92,7 +92,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1777750573505952}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.6645193, y: 3.9917793, z: -0.30566692}
+  m_LocalPosition: {x: 4.665493, y: -0.8775356, z: 0.69299936}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children:
   - {fileID: 224673082867998754}
@@ -182,8 +182,11 @@ MonoBehaviour:
   rotateSpeedForAttack: 10
   sinkingShipPrefab: {fileID: 1608105607292164, guid: 12325cfe975afc54a8fd38b767584c68,
     type: 2}
+  spawningShipPrefab: {fileID: 1361002340509908, guid: a39f73cfdec13bf45ab0f27f0cf20e91,
+    type: 2}
   selectedMaterial: {fileID: 2100000, guid: a889dd534e10361489a584ae9772a00a, type: 2}
   normalMaterial: {fileID: 2100000, guid: 8147a234d7a95b14dab878e3ac7e4613, type: 2}
+  fallSpeed: 1
 --- !u!114 &114284431937629972
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -336,7 +339,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1777750573505952}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.2
+  m_Radius: 0.13
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50

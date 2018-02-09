@@ -14,7 +14,7 @@ public class InGameUI : MonoBehaviour
         {
             yield return new WaitForSeconds(0.1f);
         }
-        Debug.Log("found commander");
+
         commander = np.commander.transform;
     }
 

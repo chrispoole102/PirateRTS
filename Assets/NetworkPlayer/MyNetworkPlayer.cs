@@ -128,8 +128,8 @@ public class MyNetworkPlayer : NetworkBehaviour
         }
 
         Temp.GetComponent<Unit>().owner = this.gameObject;
-
-        Temp.GetComponent<NavMeshAgent>().Warp(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));//needs to do this instead of transform.postion
+        
+        Temp.GetComponent<NavMeshAgent>().Warp(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));
         Temp.GetComponent<NavMeshAgent>().SetDestination(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));
 
         Temp.GetComponent<Unit>().color = teamColor;

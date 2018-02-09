@@ -32,6 +32,7 @@ public class Unit : NetworkBehaviour
     public float rotateSpeedForAttack;
 
     public GameObject sinkingShipPrefab;
+    public GameObject spawningShipPrefab;
 
     private MeshRenderer render;
     private Material[] mats;
@@ -43,6 +44,9 @@ public class Unit : NetworkBehaviour
 
     private Image hpBar;
 
+    [SyncVar]
+    public float fallSpeed = 1f;
+
     // Use this for initialization
     void Start ()
     {
@@ -52,7 +56,7 @@ public class Unit : NetworkBehaviour
 
         render = GetComponent<MeshRenderer>();
         mats = GetComponent<MeshRenderer>().materials;
-        
+
         mats[0].color = color;
 
         mats[1] = normalMaterial;
@@ -61,6 +65,17 @@ public class Unit : NetworkBehaviour
         hpBar = transform.GetChild(0).GetChild(1).GetComponent<Image>();
 
         StartCoroutine(slowUpdate());
+
+        if (isClient)//NOTE: because of Hosts, don't bank on server's version being active during animation
+        {
+            GameObject spawning = GameObject.Instantiate(spawningShipPrefab, transform.position, transform.rotation);
+            spawning.GetComponent<MeshRenderer>().materials[0].color = color;
+            spawning.GetComponent<MeshFilter>().mesh = GetComponent<MeshFilter>().mesh;
+            spawning.transform.localScale = transform.localScale;
+            spawning.GetComponent<SpawningShip>().unit = gameObject;
+            //disappear and wait for spawn animation to finish
+            gameObject.SetActive(false);
+        }
     }
 
     public void onSelected()//ONLY VISUAL NO STATE CHANGE
@@ -82,18 +97,13 @@ public class Unit : NetworkBehaviour
             if (isClient)
             {
                 hpBar.fillAmount = (float)hp / (float)maxhp;
-                if (hp <= 0)
-                {
-                    GameObject sinking = GameObject.Instantiate(sinkingShipPrefab, transform.position, transform.rotation);
-                    sinking.GetComponent<MeshRenderer>().materials[0].color = color;
-                    sinking.GetComponent<MeshFilter>().mesh = GetComponent<MeshFilter>().mesh;
-                    Destroy(gameObject);
-                }
             }
             if (isServer)
             {
+                
                 if (hp <= 0)
                 {
+                    Rpc_sink();
                     Destroy(gameObject);
                 }
                 if (canShoot)
@@ -210,5 +220,13 @@ public class Unit : NetworkBehaviour
         GameObject bullet = GameObject.Instantiate(bulletPrefab, transform.position, transform.rotation);
         bullet.GetComponent<Projectile>().speed = bulletSpeed;
         bullet.GetComponent<Projectile>().target = t;
+    }
+    [ClientRpc]
+    public void Rpc_sink()
+    {
+        GameObject sinking = GameObject.Instantiate(sinkingShipPrefab, transform.position, transform.rotation);
+        sinking.GetComponent<MeshRenderer>().materials[0].color = color;
+        sinking.GetComponent<MeshFilter>().mesh = GetComponent<MeshFilter>().mesh;
+        sinking.transform.localScale = transform.localScale;
     }
 }
