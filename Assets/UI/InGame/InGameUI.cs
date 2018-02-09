@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class InGameUI : MonoBehaviour
 {
-
+    public LayerMask cantSpawnOnLayer;
     public MyNetworkPlayer np;
     public Transform commander;
 
@@ -23,7 +23,25 @@ public class InGameUI : MonoBehaviour
         if (commander!=null)
         {
             if (np.isLocalPlayer)
-                np.Cmd_spawnCommand(commander.position + Vector3.right * 2, UnitType.BASIC);
+            {
+                Vector3 newPos;
+                int escape = 0;
+                do
+                {
+                    newPos = commander.position + new Vector3(Random.Range(-6, 6), 0, Random.Range(-6, 6));
+                    escape++;
+                }
+                while (Physics.CheckSphere(newPos + Vector3.up, 2f, cantSpawnOnLayer) && escape<30);
+
+                if (escape<30)
+                {
+                    np.Cmd_spawnCommand(new Vector2(newPos.x, newPos.z), UnitType.BASIC);
+                }
+                else
+                {
+                    Debug.Log("ERROR: COULD NOT FIND LOCATION");
+                }
+            }
         }
     }
 }

@@ -76,6 +76,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9acb220330ab564fa8d97ffa1000df9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cantSpawnOnLayer:
+    serializedVersion: 2
+    m_Bits: 1
   np: {fileID: 0}
   commander: {fileID: 0}
 --- !u!114 &114055033359559114
