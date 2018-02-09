@@ -46,8 +46,7 @@ public class Unit : NetworkBehaviour
 
     [SyncVar]
     public float fallSpeed = 1f;
-
-    // Use this for initialization
+    
     void Start ()
     {
         hp = maxhp;
@@ -61,7 +60,7 @@ public class Unit : NetworkBehaviour
 
         mats[1] = normalMaterial;
         render.materials = mats;
-
+        
         hpBar = transform.GetChild(0).GetChild(1).GetComponent<Image>();
 
         StartCoroutine(slowUpdate());

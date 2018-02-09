@@ -132,6 +132,8 @@ public class MyNetworkPlayer : NetworkBehaviour
         Temp.GetComponent<NavMeshAgent>().Warp(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));
         Temp.GetComponent<NavMeshAgent>().SetDestination(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));
 
+        Debug.Log("server spawn:"+Temp.GetComponent<MeshRenderer>().enabled);
+
         Temp.GetComponent<Unit>().color = teamColor;
 
         NetworkServer.Spawn(Temp);
