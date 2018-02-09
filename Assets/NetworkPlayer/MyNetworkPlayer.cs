@@ -8,15 +8,20 @@ using UnityEngine.AI;
 public class MyNetworkPlayer : NetworkBehaviour
 {
     public GameObject basicUnitPrefab;//because the game piece is spawned, it must be added to the network manager's "registered spawnable prefabs" list
+    public GameObject commanderPrefab;
 
     //public List<GameObject> myUnits;//I don't think I need to sync this list because the unit's sync their owners
 
     private GameObject xMarkCanvas;
     private GameObject startUI;
     private Dropdown startUIDropdown;
+    private GameObject inGameUI;
 
     [SyncVar]
     public GameObject selected;
+
+    [SyncVar]
+    public GameObject commander;
 
     public Color teamColor;
     public int team;//only used for cleanup not used for controlling ships
@@ -39,6 +44,10 @@ public class MyNetworkPlayer : NetworkBehaviour
             startUI = GameObject.Find("StartUICanvas");
             startUI.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(() => onClickSetSail());
             startUIDropdown = startUI.transform.GetChild(0).GetComponent<Dropdown>();
+
+            inGameUI = GameObject.Find("InGameCanvas");
+            inGameUI.GetComponent<InGameUI>().np = this;
+            inGameUI.SetActive(false);
             //Cmd_SetName("Player " + (GameObject.FindGameObjectsWithTag("NetworkPlayer").Length));
         }
 
@@ -75,8 +84,8 @@ public class MyNetworkPlayer : NetworkBehaviour
             //SPAWN STARTING SHIPS
             //--------------------
 
-            StartCoroutine(spawnUnit(Vector2.zero, UnitType.BASIC));
-            StartCoroutine(spawnUnit(new Vector2(0, 2), UnitType.BASIC));
+            StartCoroutine(spawnUnit(Vector2.zero, UnitType.COMMANDER));
+            //StartCoroutine(spawnUnit(new Vector2(0, 2), UnitType.BASIC));
         }
     }
     [ClientRpc]
@@ -89,7 +98,11 @@ public class MyNetworkPlayer : NetworkBehaviour
     public void Rpc_JoinGame()
     {
         if (isLocalPlayer)
+        {
             Destroy(startUI);
+            inGameUI.SetActive(true);
+            StartCoroutine(inGameUI.GetComponent<InGameUI>().waitForCommander());//wait for the server to spawn the commander ship
+        }
     }
     //ONLY CALL THIS ON SERVER
     public IEnumerator spawnUnit(Vector2 pos, UnitType type, float spawnDelay = 0.0f)
@@ -100,8 +113,15 @@ public class MyNetworkPlayer : NetworkBehaviour
         //}
         yield return new WaitForSeconds(spawnDelay);
 
-        GameObject Temp = Instantiate(basicUnitPrefab);
-        
+        GameObject Temp;
+
+        switch (type)
+        {
+            case UnitType.BASIC: Temp = Instantiate(basicUnitPrefab); break;
+            case UnitType.COMMANDER: Temp = Instantiate(commanderPrefab); break;
+            default: Temp = Instantiate(basicUnitPrefab); break;
+        }
+
         Temp.GetComponent<Unit>().owner = this.gameObject;
 
         Temp.GetComponent<NavMeshAgent>().Warp(new Vector3(pos.x, Sea.SEA_HEIGHT, pos.y));//needs to do this instead of transform.postion
@@ -110,7 +130,11 @@ public class MyNetworkPlayer : NetworkBehaviour
         Temp.GetComponent<Unit>().color = teamColor;
 
         NetworkServer.Spawn(Temp);
-        //myUnits.Add(Temp);
+
+        if (type == UnitType.COMMANDER)
+        {
+            commander = Temp;
+        }
     }
     //---------------
     //----UPDATE-----

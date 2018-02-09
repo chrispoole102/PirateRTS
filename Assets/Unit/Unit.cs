@@ -25,8 +25,10 @@ public class Unit : NetworkBehaviour
     public bool canShoot = true;
     public float shootTimer = 1;
     public float range = 2;
+    public int damage = 30;
     public float rotateSpeedForAttack;
 
+    public GameObject sinkingShipPrefab;
 
     private MeshRenderer render;
     private Material[] mats;
@@ -34,7 +36,7 @@ public class Unit : NetworkBehaviour
     public Material selectedMaterial;
     public Material normalMaterial;
 
-    public NavMeshAgent nma;
+    private NavMeshAgent nma;
 
     // Use this for initialization
     void Start ()
@@ -68,14 +70,21 @@ public class Unit : NetworkBehaviour
         yield return new WaitForSeconds(1);
         while (true)
         {
-            if (hp <= 0)
-                Destroy(gameObject);
-
             if (isClient)
             {
+                if (hp <= 0)
+                {
+                    GameObject sinking = GameObject.Instantiate(sinkingShipPrefab, transform.position, transform.rotation);
+                    sinking.GetComponent<MeshRenderer>().materials[0].color = color;
+                    Destroy(gameObject);
+                }
             }
             if (isServer)
             {
+                if (hp <= 0)
+                {
+                    Destroy(gameObject);
+                }
                 if (canShoot)
                 {
                     if (target != null)

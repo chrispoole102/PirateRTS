@@ -5,5 +5,6 @@ using UnityEngine;
 public enum UnitType
 {
     BASIC,
-    ADVANCED
+    ADVANCED,
+    COMMANDER
 }
