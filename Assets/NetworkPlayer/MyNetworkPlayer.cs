@@ -7,7 +7,7 @@ using UnityEngine.AI;
 
 public class MyNetworkPlayer : NetworkBehaviour
 {
-    public GameObject basicUnitPrefab;//because the game piece is spawned, it must be added to the network manager's "registered spawnable prefabs" list
+    public GameObject lightUnitPrefab;//because the game piece is spawned, it must be added to the network manager's "registered spawnable prefabs" list
     public GameObject commanderPrefab;
 
     //public List<GameObject> myUnits;//I don't think I need to sync this list because the unit's sync their owners
@@ -123,9 +123,9 @@ public class MyNetworkPlayer : NetworkBehaviour
 
         switch (type)
         {
-            case UnitType.BASIC: Temp = Instantiate(basicUnitPrefab); break;
+            case UnitType.LIGHT: Temp = Instantiate(lightUnitPrefab); break;
             case UnitType.COMMANDER: Temp = Instantiate(commanderPrefab); break;
-            default: Temp = Instantiate(basicUnitPrefab); break;
+            default: Temp = Instantiate(lightUnitPrefab); break;
         }
 
         Temp.GetComponent<Unit>().owner = this.gameObject;

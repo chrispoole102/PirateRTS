@@ -52,11 +52,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22e58fd93a1867448a0d591f2fb14d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  basicUnitPrefab: {fileID: 1777750573505952, guid: 1caac881dd14af44ba95a8b94ce5f8b7,
+  lightUnitPrefab: {fileID: 1777750573505952, guid: 1caac881dd14af44ba95a8b94ce5f8b7,
     type: 2}
   commanderPrefab: {fileID: 1051701100825436, guid: fcb501490343ad248999c1b7b2d307fe,
     type: 2}
   selected: {fileID: 0}
+  commander: {fileID: 0}
   teamColor: {r: 0, g: 0, b: 0, a: 0}
   team: 0
 --- !u!114 &114647071957922810

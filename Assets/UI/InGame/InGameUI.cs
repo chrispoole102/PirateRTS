@@ -35,7 +35,7 @@ public class InGameUI : MonoBehaviour
 
                 if (escape<30)
                 {
-                    np.Cmd_spawnCommand(new Vector2(newPos.x, newPos.z), UnitType.BASIC);
+                    np.Cmd_spawnCommand(new Vector2(newPos.x, newPos.z), UnitType.LIGHT);
                 }
                 else
                 {

@@ -4,7 +4,9 @@ using UnityEngine;
 
 public enum UnitType
 {
-    BASIC,
-    ADVANCED,
-    COMMANDER
+    COMMANDER,
+    FISHING,
+    LIGHT,
+    SIEGE,
+    HEAVY
 }
